@@ -20,7 +20,7 @@ docker run \
 This will run the firecracker with hello kernel and root drive provided for testing by Firecracker
 
 
-## Using Custom kernel
+## Using Custom kernel and rootfs
 
 ### Download custom kernel and rootfs
 ```
