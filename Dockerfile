@@ -1,6 +1,7 @@
 FROM alpine
 
 RUN apk --no-cache add \
+    bash \
     curl \
     iproute2 \
     libc6-compat

@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/bin/bash
+
+genMAC () {
+  hexchars="0123456789ABCDEF"
+  end=$( for i in {1..8} ; do echo -n ${hexchars:$(( $RANDOM % 16 )):1} ; done | sed -e 's/\(..\)/:\1/g' )
+  echo "FE:05$end"
+}
 
 kernel=/find/vmlinux.bin
 rootfs=/find/rootfs.ext4
@@ -15,6 +21,14 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+containerMAC=$(ip link show eth0 | awk '/ether/ { print $2 }')
+newContainerMac=$(genMAC)
+
+echo "Assign new MAC address to container : ${newContainerMac}"
+ip link set eth0 down
+ip link set eth0 address ${newContainerMac}
+ip link set eth0 up
+
 echo "Setting up tap device"
 ip tuntap add tap0 mode tap
 
@@ -26,7 +40,8 @@ iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -i tap0 -o eth0 -j ACCEPT
 
 echo "Staring firecracker..."
-echo "Using kernel : $kernel"
-echo "Using root drive : $rootfs"
+echo "Using kernel : ${kernel}"
+echo "Using root drive : ${rootfs}"
+echo "Using MAC address of container : ${containerMAC}"
 
-exec firectl --kernel=${kernel} --root-drive=${rootfs} --tap-device=tap0/AA:FC:00:00:00:01 $@
+exec firectl --kernel=${kernel} --root-drive=${rootfs} --tap-device=tap0/${containerMAC} $@
