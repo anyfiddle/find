@@ -25,4 +25,4 @@ RUN curl -fsSL -o /find/rootfs.ext4 https://s3.amazonaws.com/spec.ccfc.min/img/h
 COPY start-firecracker.sh /usr/local/bin/start-firecracker
 RUN chmod +x /usr/local/bin/start-firecracker
 
-CMD ["/bin/sh", "-c", "/usr/local/bin/start-firecracker"]
+ENTRYPOINT ["/usr/local/bin/start-firecracker"]

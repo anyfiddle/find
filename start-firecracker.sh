@@ -29,4 +29,4 @@ echo "Staring firecracker..."
 echo "Using kernel : $kernel"
 echo "Using root drive : $rootfs"
 
-firectl --kernel=${kernel} --root-drive=${rootfs} --tap-device=tap0/AA:FC:00:00:00:01
+exec firectl --kernel=${kernel} --root-drive=${rootfs} --tap-device=tap0/AA:FC:00:00:00:01 $@
