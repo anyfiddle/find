@@ -4,7 +4,8 @@ RUN apk --no-cache add \
     bash \
     curl \
     iproute2 \
-    libc6-compat
+    libc6-compat \
+    e2fsprogs
 
 WORKDIR /find
 
