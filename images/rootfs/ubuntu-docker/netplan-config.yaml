@@ -1,0 +1,10 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      addresses:
+        - 172.16.0.2/24
+      gateway4: 172.16.0.1
+      nameservers:
+        addresses: [1.1.1.1, 1.0.0.1]

@@ -21,49 +21,37 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+
+iface=eth0
+tapDeviceName=tap0
 tapDeviceMac=$(genMAC)
+gatewayIP=172.16.0.1
+vmIP=172.16.0.2
 
-# containerMAC=$(ip link show eth0 | awk '/ether/ { print $2 }')
-# newContainerMac=$(genMAC)
-
-# echo "Assign new MAC address to container : ${newContainerMac}"
-# ip link set eth0 down
-# ip link set eth0 address ${newContainerMac}
-# ip link set eth0 up
+ifaceIPs=$(ip address show dev $iface | grep inet | awk '/inet / { print $2 }' | cut -f1 -d/)
+ifaceIPs=($ifaceIPs)
+ifaceIP=${ifaceIPs[0]}
 
 echo "Setting up tap device"
-ip tuntap add tap0 mode tap
+ip tuntap add mode tap $tapDeviceName
+ip addr add $gatewayIP/24 dev $tapDeviceName
+ip link set dev "$tapDeviceName" up
 
-ip addr add 172.16.0.1/24 dev tap0
-ip link set dev tap0 up
-
+echo "Setting up routing to and from TAP device to Internet"
 sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
+iptables -t nat -A POSTROUTING -o $iface -j MASQUERADE
+iptables -I FORWARD 1 -i $tapDeviceName -j ACCEPT
+iptables -I FORWARD 1 -o $tapDeviceName -m state --state RELATED,ESTABLISHED -j ACCEPT
 
-
-IPs=$(ip address show dev eth0 | grep inet | awk '/inet / { print $2 }' | cut -f1 -d/)
-IPs=($IPs)
-IP=${IPs[0]}
-
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-iptables -I FORWARD 1 -i tap0 -j ACCEPT
-iptables -I FORWARD 1 -o tap0 -m state --state RELATED,ESTABLISHED -j ACCEPT
-
-iptables -t nat -A PREROUTING -d $IP -j DNAT --to-destination 172.16.0.2
-
-
-
-# iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-# iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-# iptables -A FORWARD -i tap0 -o eth0 -j ACCEPT
-
-
-# echo "Setting up routing to firecracker VM IP"
-# iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination 172.16.0.2:80
-# iptables -t nat -A POSTROUTING -j MASQUERADE
+iptables -t nat -A PREROUTING -d $ifaceIP -j DNAT --to-destination $vmIP
 
 echo "Staring firecracker..."
 echo "Using kernel : ${kernel}"
 echo "Using root drive : ${rootfs}"
-echo "Using MAC address of container : ${containerMAC}"
+echo "Networking"
+echo "\t Network interface IP (Ethernet) : ${ifaceIP}"
+echo "\t Tap device : ${tapDeviceName}"
+echo "\t Tap device IP (Gateway) : ${gatewayIP}"
+echo "\t VM IP : ${vmIP}"
 
-exec firectl --kernel=${kernel} --root-drive=${rootfs} --tap-device=tap0/${tapDeviceMac} $@
+exec firectl --kernel=$kernel --root-drive=$rootfs --tap-device=$tapDeviceName/$tapDeviceMac $@
