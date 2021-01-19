@@ -8,8 +8,8 @@ on:
       - '*'
 
 jobs:
-  build-kernel-builder:
-    name: Build kernel builder
+  build-find:
+    name: Build FIND image
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -22,6 +22,6 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v2
       with:
-        context: ./images/kernel/builder
-        tags: anyfiddle/firecracker-kernel-builder:latest
+        context: .
+        tags: anyfiddle/find:latest
         push: true
