@@ -17,7 +17,7 @@ function createEmptyImage() {
     echo "Creating rootfs image as ${imageFile}"
 
     # Truncate the image file to desired size
-    truncate -s 10G ${imageFile}
+    truncate -s 1G ${imageFile}
 
     # Make image file
     mkfs.ext4 ${imageFile}
