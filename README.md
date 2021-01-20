@@ -6,11 +6,18 @@ FIND is a project to run Firecracker MicroVMs in Docker containers
 
 ### Run Firecracker in Docker
 
+Download RootFS image
+
+```
+curl -fsSL -o rootfs.ext4 https://storage.googleapis.com/anyfiddle-find/rootfs/ubuntu-image-latest.ext4
+```
+
 ```
 docker run \
     -ti \
     --privileged \
-    anyfiddle/find
+    -v $(pwd)/rootfs.ext4:/rootfs.ext4 \
+    anyfiddle/find --root-drive=/rootfs.ext4
 ```
 
 This will run the firecracker with hello kernel and root drive provided for testing by Firecracker

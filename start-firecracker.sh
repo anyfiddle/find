@@ -7,7 +7,6 @@ genMAC () {
 }
 
 kernel=/find/vmlinux.bin
-rootfs=/find/rootfs.ext4
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -21,6 +20,13 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+if [ -z "$rootfs" ]
+then
+  echo "Invalid params"
+  echo "root-drive parameter required"
+  echo "Use --root-drive=<PATH_TO_ROOT_FS_IMAGE>"  
+  exit 1
+fi
 
 iface=eth0
 tapDeviceName=tap0
