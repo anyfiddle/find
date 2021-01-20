@@ -20,8 +20,8 @@ RUN curl -Lo firecracker.tgz https://github.com/firecracker-microvm/firecracker/
     && chmod +x firecracker/firecracker-v0.24.0-x86_64 \
     && mv firecracker/firecracker-v0.24.0-x86_64 /usr/local/bin/firecracker
 
-RUN curl -fsSL -o /find/vmlinux.bin https://storage.googleapis.com/anyfiddle-find/kernel/default/vmlinux.bin
-RUN curl -fsSL -o /find/rootfs.ext4 https://github.com/anyfiddle/docker-find-ubuntu/releases/download/0.0.2/image.ext4
+RUN curl -fsSL -o /find/vmlinux.bin https://storage.googleapis.com/anyfiddle-find/kernel/default-kernel-latest.bin
+RUN curl -fsSL -o /find/rootfs.ext4 https://storage.googleapis.com/anyfiddle-find/rootfs/ubuntu-image-latest.ext4
 
 COPY start-firecracker.sh /usr/local/bin/start-firecracker
 RUN chmod +x /usr/local/bin/start-firecracker
