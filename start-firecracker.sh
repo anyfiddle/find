@@ -7,11 +7,13 @@
 : ${VM_IP="172.16.0.2"}
 : ${TAP_DEVICE_NAME="tap0"}
 
+NETWORK_IP=""
+
 if [ -z "$ROOTFS_PATH" ]
 then
   echo "Invalid params"
   echo "root-drive parameter required"
-  echo "Use --root-drive=<PATH_TO_ROOT_FS_IMAGE>"  
+  echo "Add environment variable ROOTFS_PATH=<PATH_TO_ROOT_FS_IMAGE>"  
   exit 1
 fi
 
@@ -27,7 +29,7 @@ function setupNetworking() {
 
   ifaceIPs=$(ip address show dev $iface | grep inet | awk '/inet / { print $2 }' | cut -f1 -d/)
   ifaceIPs=($ifaceIPs)
-  ifaceIP=${ifaceIPs[0]}
+  NETWORK_IP=${ifaceIPs[0]}
 
   echo "Setting up tap device"
   ip tuntap add mode tap $TAP_DEVICE_NAME
@@ -40,7 +42,13 @@ function setupNetworking() {
   iptables -I FORWARD 1 -i $TAP_DEVICE_NAME -j ACCEPT
   iptables -I FORWARD 1 -o $TAP_DEVICE_NAME -m state --state RELATED,ESTABLISHED -j ACCEPT
 
-  iptables -t nat -A PREROUTING -d $ifaceIP -j DNAT --to-destination $VM_IP
+  iptables -t nat -A PREROUTING -d $NETWORK_IP -j DNAT --to-destination $VM_IP
+
+  echo "Networking"
+  echo "\t Network interface IP (Ethernet) : ${NETWORK_IP}"
+  echo "\t Tap device : ${TAP_DEVICE_NAME}"
+  echo "\t Tap device IP (Gateway) : ${GATEWAY_IP}"
+  echo "\t VM IP : ${VM_IP}"
 }
 
 function loadKernel() {
@@ -65,6 +73,19 @@ function loadRootFs() {
           \"is_root_device\": true,
           \"is_read_only\": false
     }"
+}
+
+function loadNetworkDevice() {
+  curl --unix-socket ${SOCKET_PATH} -i \
+    -X PUT 'http://localhost/network-interfaces/eth0' \
+    -H 'Accept: application/json' \
+    -H 'Content-Type: application/json' \
+    -d "{
+        \"iface_id\": \"eth0\",
+        \"guest_mac\": \"${TAP_DEVICE_MAC}\",
+        \"host_dev_name\": \"${TAP_DEVICE_NAME}\"
+      }"
+}
 
 function startVM() {
   curl --unix-socket ${SOCKET_PATH} -i \
@@ -77,7 +98,7 @@ function startVM() {
 }
 
 function pauseVM() {
-  curl --unix-socket /root/.firecracker.sock-7-81 -i \
+  curl --unix-socket ${SOCKET_PATH} -i \
     -X PATCH 'http://localhost/vm' \
     -H 'Accept: application/json' \
     -H 'Content-Type: application/json' \
@@ -87,7 +108,7 @@ function pauseVM() {
 }
 
 function resumeVM() {
-  curl --unix-socket /root/.firecracker.sock-7-81 -i \
+  curl --unix-socket ${SOCKET_PATH} -i \
     -X PATCH 'http://localhost/vm' \
     -H 'Accept: application/json' \
     -H 'Content-Type: application/json' \
@@ -97,19 +118,19 @@ function resumeVM() {
 }
 
 function createSnapshot() {
-  curl --unix-socket /root/.firecracker.sock-7-81 -i \
+  curl --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/snapshot/create' \
     -H  'Accept: application/json' \
     -H  'Content-Type: application/json' \
     -d "{
             \"snapshot_type\": \"Full\",
-             \"snapshot_path\": \"${SNAPSHOT_PATH}\",
+            \"snapshot_path\": \"${SNAPSHOT_PATH}\",
             \"mem_file_path\": \"${MEM_FILE_PATH}\"
     }"
 }
 
 function loadSnapshot() {
-  curl --unix-socket /root/.firecracker.sock-7-81 -i \
+  curl --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/snapshot/load' \
     -H  'Accept: application/json' \
     -H  'Content-Type: application/json' \
@@ -119,26 +140,39 @@ function loadSnapshot() {
         }"
 }
 
-function startFirecracker() {
+function initSocket() {
   rm ${SOCKET_PATH}
-  firecracker --api-sock ${SOCKET_PATH}
 }
 
-function loadVMFromImage() {
+function startFirecracker() {
+  firecracker --api-sock ${SOCKET_PATH} &
+}
+
+function startFromImage() {
   loadKernel
   loadRootFs
+  loadNetworkDevice
   startVM
 }
 
-function loadVMFromSnapshot() {
+function startFromSnapshot() {
   loadSnapshot
   resumeVM
 }
 
 function handleStop() {
-  echo "Done $pid1 $pid2"
+  if [ ! -z "${SNAPSHOT_PATH}" ] && [ ! -z "${MEM_FILE_PATH}" ]
+  then
+    echo "Pausing VM"
+    pauseVM
+
+    echo "Taking snapshot ${SNAPSHOT_PATH}"
+    createSnapshot
+
+    echo "Snapshot done"
+  fi
+
   kill $firecrackerPid
-  kill $vmStarterPid
 }
 
 
@@ -146,24 +180,27 @@ TAP_DEVICE_MAC=$(genMAC)
 echo "Staring firecracker..."
 echo "Using kernel : ${KERNEL_PATH}"
 echo "Using root drive : ${ROOTFS_PATH}"
-echo "Networking"
-echo "\t Network interface IP (Ethernet) : ${ifaceIP}"
-echo "\t Tap device : ${TAP_DEVICE_NAME}"
-echo "\t Tap device IP (Gateway) : ${gatewayIP}"
-echo "\t VM IP : ${VM_IP}"
-
 
 
 trap handleStop INT
 trap handleStop TERM
 
-startFirecracker &
+initSocket
+setupNetworking
+
+# # Start firecracker process
+startFirecracker 
+
+if [ ! -f "${SNAPSHOT_PATH}" ] && [ ! -f "${MEM_FILE_PATH}" ]
+then
+  echo "Starting from image"
+  startFromImage
+else
+  echo "Starting from snapshot"
+  startFromSnapshot
+fi
+
+
+
 firecrackerPid=$!
-echo "Firecracker PID: $firecrackerPid"
-
-loadVMFromImage &
-vmStarterPid=$!
-echo "VM Starter PID: $vmStarterPid"
-
 wait $firecrackerPid
-wait $vmStarterPid
