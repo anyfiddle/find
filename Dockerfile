@@ -8,12 +8,6 @@ RUN apk --no-cache add \
 
 WORKDIR /find
 
-RUN curl -Lo firectl https://firectl-release.s3.amazonaws.com/firectl-v0.1.0 \
-    && curl -Lo firectl.sha256 https://firectl-release.s3.amazonaws.com/firectl-v0.1.0.sha256 \
-    && sha256sum -c firectl.sha256 \
-    && chmod +x firectl \
-    && mv firectl /usr/local/bin/firectl
-
 RUN curl -Lo firecracker.tgz https://github.com/firecracker-microvm/firecracker/releases/download/v0.24.0/firecracker-v0.24.0-x86_64.tgz \
     && mkdir firecracker \
     && tar -xf firecracker.tgz -C firecracker \
