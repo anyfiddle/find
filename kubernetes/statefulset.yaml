@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kubecracker-vm-1
+  labels:
+    app: kubecracker-vm-1
+spec:
+  serviceName: kubecracker-vm-1
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubecracker-vm-1
+  template:
+    metadata:
+      labels:
+        app: kubecracker-vm-1
+    spec:
+      initContainers:
+      - name: kubecracker-init-container
+        image: anyfiddle/kubecracker-init:0.0.1
+        volumeMounts:
+        - name: kubecracker-vm-disk-1
+          mountPath: /disk
+        env:
+        - name: IMAGE_PATH
+          value: /disk/image.ext4
+        - name: IMAGE_DOWNLOAD_URL
+          value: https://storage.googleapis.com/anyfiddle-find/rootfs/ubuntu-image-latest.ext4
+        - name: IMAGE_SIZE
+          value: 8G
+      containers:
+      - name: kubecracker-find-container
+        image: anyfiddle/find:0.0.2
+        securityContext:
+          privileged: true
+        # command: ["sh", "-c", "while sleep 3600; do :; done"]
+        args: ["--root-drive=/disk/image.ext4 --ncpus=1 --memory=2048"]
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+        ports:
+        - name: ssh
+          containerPort: 22
+        - name: runner
+          containerPort: 9876
+        - name: http
+          containerPort: 8080
+        volumeMounts:
+        - name: kubecracker-vm-disk-1
+          mountPath: /disk
+  volumeClaimTemplates:
+  - metadata:
+      name: kubecracker-vm-disk-1
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
