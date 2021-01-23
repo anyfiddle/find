@@ -166,6 +166,17 @@ function handleStop() {
     echo "Pausing VM"
     pauseVM
 
+    echo "Removing previous snapshot files"
+    if [ -f "${SNAPSHOT_PATH}" ]
+    then
+      rm ${SNAPSHOT_PATH}
+    fi
+
+    if [ -f "${MEM_FILE_PATH}" ]
+    then
+      rm ${MEM_FILE_PATH}
+    fi
+
     echo "Taking snapshot ${SNAPSHOT_PATH}"
     createSnapshot
 

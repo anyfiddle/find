@@ -8,4 +8,4 @@ exec docker run \
     -e ROOTFS_PATH=/disk/image.ext4\
     -e SNAPSHOT_PATH=/disk/snapshot\
     -e MEM_FILE_PATH=/disk/memfile\
-    anyfiddle/find:0.0.3
+    anyfiddle/find:0.0.4
