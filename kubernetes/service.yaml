@@ -17,5 +17,5 @@ spec:
       targetPort: 9876
     - name: http
       protocol: TCP
-      port: 3000
-      targetPort: 3000
+      port: 8080
+      targetPort: 8080

@@ -30,11 +30,20 @@ spec:
           value: 8G
       containers:
       - name: kubecracker-find-container
-        image: anyfiddle/find:0.0.2
+        image: anyfiddle/find:0.0.5
         securityContext:
           privileged: true
-        # command: ["sh", "-c", "while sleep 3600; do :; done"]
-        args: ["--root-drive=/disk/image.ext4 --ncpus=1 --memory=2048"]
+        env:
+          - name: CPU_COUNT
+            value: "1"
+          - name: MEMORY
+            value: "2048"
+          - name: ROOTFS_PATH
+            value: /disk/image.ext4
+          - name: SNAPSHOT_PATH
+            value: /disk/snapshot
+          - name: MEM_FILE_PATH
+            value: /disk/memfile
         resources:
           requests:
             memory: "2Gi"
@@ -56,7 +65,9 @@ spec:
   - metadata:
       name: kubecracker-vm-disk-1
     spec:
-      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: ssd
+      accessModes:
+      - ReadWriteOnce
       resources:
         requests:
           storage: 10Gi
