@@ -7,6 +7,9 @@
 : ${VM_IP="172.16.0.2"}
 : ${TAP_DEVICE_NAME="tap0"}
 
+: ${CPU_COUNT="1"}
+: ${MEMORY="1024"}
+
 NETWORK_IP=""
 
 if [ -z "$ROOTFS_PATH" ]
@@ -87,6 +90,18 @@ function loadNetworkDevice() {
       }"
 }
 
+function loadMachineConfig() {
+  curl --unix-socket ${SOCKET_PATH} -i  \
+    -X PUT 'http://localhost/machine-config' \
+    -H 'Accept: application/json'            \
+    -H 'Content-Type: application/json'      \
+    -d "{
+        \"vcpu_count\": ${CPU_COUNT},
+        \"mem_size_mib\": ${MEMORY},
+        \"ht_enabled\": false
+    }"
+}
+
 function startVM() {
   curl --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/actions'       \
@@ -151,6 +166,7 @@ function startFirecracker() {
 function startFromImage() {
   loadKernel
   loadRootFs
+  loadMachineConfig
   loadNetworkDevice
   startVM
 }
