@@ -161,6 +161,7 @@ function initSocket() {
 
 function startFirecracker() {
   firecracker --api-sock ${SOCKET_PATH} &
+  sleep 1
 }
 
 function startFromImage() {
