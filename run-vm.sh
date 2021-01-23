@@ -1,3 +1,5 @@
+docker build -t anyfiddle-local/find .
+
 exec docker run \
     -ti \
     --privileged \
@@ -8,4 +10,4 @@ exec docker run \
     -e ROOTFS_PATH=/disk/image.ext4\
     -e SNAPSHOT_PATH=/disk/snapshot\
     -e MEM_FILE_PATH=/disk/memfile\
-    anyfiddle/find:0.0.4
+    anyfiddle-local/find
