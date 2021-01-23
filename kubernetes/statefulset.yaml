@@ -27,10 +27,11 @@ spec:
         - name: IMAGE_DOWNLOAD_URL
           value: https://storage.googleapis.com/anyfiddle-find/rootfs/ubuntu-image-latest.ext4
         - name: IMAGE_SIZE
-          value: 8G
+          value: 5G
+      terminationGracePeriodSeconds: 120
       containers:
       - name: kubecracker-find-container
-        image: anyfiddle/find:0.0.5
+        image: anyfiddle/find:0.0.7
         securityContext:
           privileged: true
         env:
@@ -65,7 +66,6 @@ spec:
   - metadata:
       name: kubecracker-vm-disk-1
     spec:
-      storageClassName: ssd
       accessModes:
       - ReadWriteOnce
       resources:

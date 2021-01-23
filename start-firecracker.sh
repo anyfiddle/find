@@ -55,7 +55,7 @@ function setupNetworking() {
 }
 
 function loadKernel() {
-  curl --unix-socket ${SOCKET_PATH} -i \
+  curl -s --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/boot-source'   \
     -H 'Accept: application/json'           \
     -H 'Content-Type: application/json'     \
@@ -66,7 +66,7 @@ function loadKernel() {
 }
 
 function loadRootFs() {
-  curl --unix-socket ${SOCKET_PATH} -i \
+  curl -s --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/drives/rootfs' \
     -H 'Accept: application/json'           \
     -H 'Content-Type: application/json'     \
@@ -79,7 +79,7 @@ function loadRootFs() {
 }
 
 function loadNetworkDevice() {
-  curl --unix-socket ${SOCKET_PATH} -i \
+  curl -s --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/network-interfaces/eth0' \
     -H 'Accept: application/json' \
     -H 'Content-Type: application/json' \
@@ -91,7 +91,7 @@ function loadNetworkDevice() {
 }
 
 function loadMachineConfig() {
-  curl --unix-socket ${SOCKET_PATH} -i  \
+  curl -s --unix-socket ${SOCKET_PATH} -i  \
     -X PUT 'http://localhost/machine-config' \
     -H 'Accept: application/json'            \
     -H 'Content-Type: application/json'      \
@@ -103,7 +103,7 @@ function loadMachineConfig() {
 }
 
 function startVM() {
-  curl --unix-socket ${SOCKET_PATH} -i \
+  curl -s --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/actions'       \
     -H  'Accept: application/json'          \
     -H  'Content-Type: application/json'    \
@@ -113,7 +113,7 @@ function startVM() {
 }
 
 function pauseVM() {
-  curl --unix-socket ${SOCKET_PATH} -i \
+  curl -s --unix-socket ${SOCKET_PATH} -i \
     -X PATCH 'http://localhost/vm' \
     -H 'Accept: application/json' \
     -H 'Content-Type: application/json' \
@@ -123,7 +123,7 @@ function pauseVM() {
 }
 
 function resumeVM() {
-  curl --unix-socket ${SOCKET_PATH} -i \
+  curl -s --unix-socket ${SOCKET_PATH} -i \
     -X PATCH 'http://localhost/vm' \
     -H 'Accept: application/json' \
     -H 'Content-Type: application/json' \
@@ -133,7 +133,7 @@ function resumeVM() {
 }
 
 function createSnapshot() {
-  curl --unix-socket ${SOCKET_PATH} -i \
+  curl -s --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/snapshot/create' \
     -H  'Accept: application/json' \
     -H  'Content-Type: application/json' \
@@ -145,7 +145,7 @@ function createSnapshot() {
 }
 
 function loadSnapshot() {
-  curl --unix-socket ${SOCKET_PATH} -i \
+  curl -s --unix-socket ${SOCKET_PATH} -i \
     -X PUT 'http://localhost/snapshot/load' \
     -H  'Accept: application/json' \
     -H  'Content-Type: application/json' \
