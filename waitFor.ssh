@@ -1,5 +1,0 @@
-while true
-do
-    echo "$(date) : $(curl -s -m 1 http://104.154.138.49:9876/api/workspace)"
-    sleep 1
-done
