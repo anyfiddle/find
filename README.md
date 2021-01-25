@@ -17,7 +17,7 @@ docker run \
     -ti \
     --privileged \
     -v $(pwd)/rootfs.ext4:/image.ext4 \
-    -e ROOTFS_PATH=/image.ext4 \ 
+    -e ROOTFS_PATH=/image.ext4 \
     anyfiddle/find
 ```
 
@@ -49,3 +49,4 @@ docker build -t find .
 - Firecracker rootfs builder : https://github.com/anyfiddle/firecracker-rootfs-builder
 - Firecracker kernel builder : https://github.com/anyfiddle/firecracker-kernel-builder
 - Ubuntu Rootfs for FIND from docker image : https://github.com/anyfiddle/docker-find-ubuntu
+- Initializing volume for starting FIND in kubernetes : https://github.com/anyfiddle/kubecracker-init
