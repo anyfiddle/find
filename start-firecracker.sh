@@ -159,9 +159,8 @@ function initSocket() {
   rm ${SOCKET_PATH}
 }
 
-function startFirecracker() {
+function startFirecrackerServer() {
   firecracker --api-sock ${SOCKET_PATH} &
-  sleep 1
 }
 
 function startFromImage() {
@@ -175,6 +174,27 @@ function startFromImage() {
 function startFromSnapshot() {
   loadSnapshot
   resumeVM
+}
+
+function startFirecrackerVM() {
+  waitForFirecrackerServer
+  if [ ! -f "${SNAPSHOT_PATH}" ] && [ ! -f "${MEM_FILE_PATH}" ]
+  then
+    echo "Starting from image"
+    startFromImage
+  else
+    echo "Starting from snapshot"
+    startFromSnapshot
+  fi
+}
+
+function waitForFirecrackerServer() {
+  echo "Waiting for firecracker server to start..."
+  while ! curl --unix-socket ${SOCKET_PATH} "http://localhost"
+  do
+    sleep 1
+  done
+  echo "Firecracker server starter"
 }
 
 function handleStop() {
@@ -216,19 +236,11 @@ trap handleStop TERM
 initSocket
 setupNetworking
 
+
 # # Start firecracker process
-startFirecracker 
+startFirecrackerServer
 
-if [ ! -f "${SNAPSHOT_PATH}" ] && [ ! -f "${MEM_FILE_PATH}" ]
-then
-  echo "Starting from image"
-  startFromImage
-else
-  echo "Starting from snapshot"
-  startFromSnapshot
-fi
-
-
+startFirecrackerVM
 
 firecrackerPid=$!
 wait $firecrackerPid
