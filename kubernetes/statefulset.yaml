@@ -31,7 +31,7 @@ spec:
       terminationGracePeriodSeconds: 120
       containers:
       - name: kubecracker-find-container
-        image: anyfiddle/find:0.0.7
+        image: anyfiddle/find:0.0.8
         securityContext:
           privileged: true
         env:
