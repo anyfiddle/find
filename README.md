@@ -4,20 +4,24 @@ FIND is a project to run Firecracker MicroVMs in Docker containers
 
 ## Getting started
 
+### Requirements
+
+- KVM enabled host. Either bare metal instance or VM with nested virtualisation [Cloud providers with KVM supported VMs](https://github.com/weaveworks/ignite/blob/master/docs/cloudprovider.md)
+
 ### Run Firecracker in Docker
 
 Download RootFS image
 
 ```
-curl -fsSL -o image.ext4 https://storage.googleapis.com/anyfiddle-find/rootfs/ubuntu-image-latest.ext4
+curl -fsSL -o rootfs.ext4 https://storage.googleapis.com/anyfiddle-find/rootfs/ubuntu-image-latest.ext4
 ```
 
 ```
 docker run \
     -ti \
     --privileged \
-    -v $(pwd)/rootfs.ext4:/image.ext4 \
-    -e ROOTFS_PATH=/image.ext4 \
+    -v $(pwd)/rootfs.ext4:/rootfs.ext4 \
+    -e ROOTFS_PATH=/rootfs.ext4 \
     anyfiddle/find
 ```
 
@@ -30,10 +34,12 @@ Mount vmlinux (kernel) or rootfs into the FIND container and pass the location a
 ```
 docker run \
     -ti \
-    -v ${pwd}/vmlinux.bin:/vmlinux.bin \
-    -v ${pwd}/rootfs.ext4:/rootfs.ext4 \
     --privileged \
-    anyfiddle/find --kernel=/vmlinux.bin --root-drive=/rootfs.ext4
+    -v ${pwd}/rootfs.ext4:/rootfs.ext4 \
+    -v ${pwd}/vmlinux.bin:/vmlinux.bin \
+    -e ROOTFS_PATH=/rootfs.ext4 \
+    -e KERNEL_PATH=/vmlinux.ext4 \
+    anyfiddle/find
 ```
 
 ## Contributing
